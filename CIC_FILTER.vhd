@@ -33,9 +33,7 @@ end CIC_INTEGRATOR;
 architecture RTL of CIC_INTEGRATOR is
 	signal border : integer range 0 to 111;
 	signal in_reg, out_reg : signed(111 downto 0);
-begin    
---    border <= 111 - i_reg_width;
-    
+begin        
 	process(clk)
 	begin
 		if rising_edge(clk) then
@@ -43,12 +41,8 @@ begin
 		      in_reg <= (others => '0');
 		      out_reg <= (others => '0');
 		  else		  	  	  
---		      in_reg(31 downto border) <= i_data(31 downto border);
---		      out_reg(31 downto border) <= in_reg(31 downto border) + out_reg(31 downto border);
-
 		      in_reg(i_reg_width - 1 downto 0) <= i_data(i_reg_width - 1 downto 0);
 		      out_reg(i_reg_width - 1 downto 0) <= in_reg(i_reg_width - 1 downto 0) + out_reg(i_reg_width - 1 downto 0);
-
 		  end if;
 	   end if;
 	end process;
@@ -97,8 +91,6 @@ architecture RTL of CIC_COMB is
 	signal in_reg, delay_reg, o_reg : signed(111 downto 0);
     signal reset_flag : std_logic;
 begin
-    border <= 111 - i_reg_width;
-
 	process(clk)
 	begin
 		if rising_edge(clk) then
@@ -117,10 +109,6 @@ begin
 	       in_reg <= (others => '0');
 	       o_reg <= (others => '0');	
 	   elsif rising_edge(i_sample_clk) then
---		   in_reg(31 downto border) <= i_data(31 downto border);
---          delay_reg(31 downto border) <= in_reg(31 downto border);
---           o_reg(31 downto border) <= in_reg(31 downto border) - delay_reg(31 downto border);
-
 		   in_reg(i_reg_width - 1 downto 0) <= i_data(i_reg_width - 1 downto 0);
           delay_reg(i_reg_width - 1 downto 0) <= in_reg(i_reg_width - 1 downto 0);
            o_reg(i_reg_width - 1 downto 0) <= in_reg(i_reg_width - 1 downto 0) - delay_reg(i_reg_width - 1 downto 0);
@@ -171,8 +159,6 @@ end CIC_FILTER;
 
 architecture STRUCTURAL of CIC_FILTER is
     -- Compute the register widths and division factor of the CIC filter 
---    constant REG_WIDTH : integer := integer (data_WIDTH) + integer(R)*integer(N);
---    constant SHIFT_VAL : integer := integer(R)*integer(N);
     signal in_reg, out_reg : signed(data_WIDTH - 1 downto 0);                     
     signal shift_value : integer range 0 to 32*integer(N);
     signal reg_width : integer range 0 to 111;
@@ -191,7 +177,6 @@ begin
             in_reg <= signed(i_data);
             integrator_pipeline(0) <= resize(in_reg, 112);      
             comb_pipeline(0) <= integrator_pipeline(N);                                                       
---            out_reg <= comb_pipeline(N)(reg_width - 1 downto 0);
           out_reg <= resize(shift_right(signed(comb_pipeline(N)(reg_width - 1 downto 0)), shift_value), data_WIDTH);
         end if;
     end process;
@@ -221,40 +206,3 @@ begin
         );
     end generate;
 end STRUCTURAL;
-
-
-
-
-
-
-
-
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.NUMERIC_STD.ALL;
-
-entity CLK_DIVIDER is
-    Port ( clk : in  STD_LOGIC;
-           reset : in  STD_LOGIC;
-           timebase : in  STD_LOGIC_VECTOR (5 downto 0);
-           clk_out : out  STD_LOGIC);
-end CLK_DIVIDER;
-
-architecture BEHAVIORAL of CLK_DIVIDER is
-    signal counter_reg : unsigned(31 downto 0);
-begin
-    process(clk)
-    begin
-        if rising_edge(clk) then
-            if reset = '1' then
-                counter_reg <= (others => '0');
-            else
-                counter_reg <= counter_reg + 1;
-            end if;
-        end if;		
-    end process;
-    
-    with timebase(5) select
-    clk_out <= clk when '1',
-                std_logic(counter_reg (to_integer(unsigned(timebase)))) when others;            
-end BEHAVIORAL;
