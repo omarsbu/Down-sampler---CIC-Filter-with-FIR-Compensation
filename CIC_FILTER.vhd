@@ -3,11 +3,13 @@
 -- Name: CIC Integrator
 --
 -- Description: Output accumulates input data through summation with previous 
---  input data. Uses signed 2's compliment "roll-over" arithmetic logic.
+--  input data. Uses signed 2's compliment "roll-over" arithmetic logic. The 
+--  register width can be programmed from the input port for dynamic sample rate.
 --
 -- Inputs:
 --    clk : system clock
 --    i_reset : Active-high Synchronous reset
+--    i_reg_width : Width of the accumulator register
 --    i_data : Input data sequence
 --
 -- Outputs:
@@ -58,10 +60,13 @@ end RTL;
 --  accumulated summation from the integrator and the subtraction operation is
 --  performed every R clock cycles to calculate the total change over the
 --  interval being averaged. Since the subtraction operation is performed 
---  every R clock cycles, the comb also works as a downsampler
+--  every R clock cycles, the comb also works as a downsampler. The register 
+--  width is programmable to allow for dynamic adjustment of the sample rate.
 --
 -- Inputs:
 --    clk : system clock
+--    i_sample_clk : new sample rate clk	
+--    i_reg_width : Width of the comb register
 --    i_reset : Active-high Synchronous reset
 --    i_data : Input data sequence
 --
@@ -130,7 +135,9 @@ end RTL;
 --
 -- Inputs:
 --    clk : system clock
+--    i_sample_rate : new sample rate	
 --    i_reset : Active-high Synchronous reset
+--    log_2_R : log base 2 of rate change R
 --    i_data : Input data sequence
 --
 -- Outputs:
